@@ -1,0 +1,7 @@
+PORT=8000
+CORS_ORIGIN=*
+MONGODB_URL="mongodb+srv://<>:<password>@cluster0.rd6wiou.mongodb.net"
+JWT_SECRET=
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
