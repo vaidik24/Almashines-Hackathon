@@ -9,8 +9,10 @@ dotenv.config({
 
 connectDB()
   .then(() => {
-    app.listen(process.env.PORT, () => {
-      console.log(`Server is running on port ${process.env.PORT}`);
+    const PORT = 8080;
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+      console.log(`Open http://localhost:${PORT} in your browser`);
     });
   })
   .catch((error) => {
@@ -18,7 +20,7 @@ connectDB()
   });
 
 // import express from "express";
-// const app = express();
+// // const app = express();
 // (async () => {
 //   try {
 //     const conn = await mongoose.connect(`${process.env.MONGODB_URL}/${DB_NAME}`);
