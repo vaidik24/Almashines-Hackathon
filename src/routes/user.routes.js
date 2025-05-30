@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { registerUser } from "../controllers/user.controller.js";
+import { createIndustryPool, fetchHighestFrequencyIndustry } from "../controllers/user.controller.js";
 
 const router = Router();
 
-router.route("/register").post(registerUser);
+router.route("/fetchIndustry").post(fetchHighestFrequencyIndustry);
 
 export default router;
