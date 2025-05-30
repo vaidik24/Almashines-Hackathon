@@ -26,6 +26,6 @@ app.use(express.static("public"));
 import userRouter from "./routes/user.routes.js";
 import enhanceRouter from "./routes/enhance.routes.js";
 
-app.use("/api/v1/users", userRouter);
-app.use("/api/v1", enhanceRouter);
+app.use("/api/", userRouter);
+
 export { app };
