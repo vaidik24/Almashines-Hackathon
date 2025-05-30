@@ -42,4 +42,4 @@ const launchNewsletter = asyncHandler(async (req, res) => {
 });
 
 
-export { registerUser, launchNewsletter };
+export { launchNewsletter };
