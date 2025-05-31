@@ -6,7 +6,8 @@ import pool from "../db/connect.js"; // your MySQL pool
 import SuggestionRatioAdjuster from "../Logic/SuggestionRatioAdjuster.js"
 const createIndustryPool = async () => {
   const [industries] = await pool.query(
-    "SELECT uwe.industry, COUNT(u.id) as frequency FROM users u JOIN user_work_experience uwe ON uwe.user_id = u.id GROUP BY uwe.industry ORDER BY frequency DESC LIMIT 5"
+    "SELECT uwe.industry, COUNT(u.id) as frequency FROM users u JOIN user_work_experience uwe ON uwe.user_id = u.id where uwe.industry!='Other' and uwe.industry!='' and u.cid = ? GROUP BY uwe.industry ORDER BY frequency DESC LIMIT 5",
+    [cid]
   );
   return industries;
 };
@@ -103,21 +104,25 @@ const fetchHighestFrequencyIndustry = asyncHandler(async (req, res) => {
 
     let content = [];
 
-    // For demo purposes, just one industry’s content:
-    const firstIndustry = industries[0].industry;
-    const firstNews = await fetchNewsByTopic(firstIndustry);
-    content.push(firstNews);
-
-    console.log("Starting content generation...");
-    const generatedData = await generateContent("integrated", firstNews);
-    console.log("Generated Data: ", generatedData);
-
-    return res.status(200).json({
-      message: "Fetched highest frequency industries",
+    for (const { industry, posts } of frequencyMapping) {
+    if (content.length === 0) {
+      const news = await fetchNewsByTopic(industry, posts);
+      if (Array.isArray(news)) {
+        news.forEach(item => {
+          content.push({ ...item, industry });
+        });
+      } else if (news) {
+        content.push({ ...news, industry });
+      }
+    }
+  }
+  storeNewsArticles(content).then(() => {
+    console.log("News articles stored successfully!");
+    res.status(200).json({
       industry: industries,
-      content: generatedData,
+      content: content,
     });
-
+  });
   } catch (err) {
     console.error("Error in fetchHighestFrequencyIndustry:", err);
     return res.status(500).json({ error: "Internal server error" });
@@ -141,4 +146,24 @@ const launchNewsletter = asyncHandler(async (req, res) => {
     redirectUrl,
   });
 });
-export { createIndustryPool, fetchHighestFrequencyIndustry, launchNewsletter };
+const fetchSuggestions = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 35 } = req.query;
+  const offset = (page - 1) * limit;
+
+  const [suggestions] = await pool.query(
+    "SELECT * FROM suggestions where status!=2 ORDER BY created_at DESC LIMIT ? OFFSET ?",
+    [parseInt(limit), parseInt(offset)]
+  );
+
+  if (!suggestions || suggestions.length === 0) {
+    return res.status(404).json({ message: "No suggestions found" });
+  }
+
+  res.status(200).json({
+    page: parseInt(page),
+    limit: parseInt(limit),
+    total: suggestions.length,
+    suggestions,
+  });
+});
+export { createIndustryPool, fetchHighestFrequencyIndustry, launchNewsletter, generateContentFromNews, fetchSuggestions };
