@@ -149,16 +149,38 @@ const fetchHighestFrequencyIndustry = asyncHandler(async (req, res) => {
 });
 
 const findKeywordNews = asyncHandler(async (req, res) => {
-  const { keyword, postCount = 5 } = req.query;
+  const { keyword, postCount = 5, cid = null } = req.query;
   if(!keyword || keyword.trim() === "")
     return res.status(400).json({ error: "Keyword is required" });
+  if(cid == null)
+    return res.status(400).json({ error: "Community ID is required" });
   if(!Number.isInteger(parseInt(postCount)) || parseInt(postCount) <= 0)
     postCount = 5;
   const news = await fetchNewsByTopic(keyword, postCount);
+  if (Array.isArray(news)) {
+    news.forEach(item => {
+      item.industry = keyword;
+      item.cid = cid;
+    });
+  } else if (news) {
+    news.industry = keyword;
+    news.cid = cid;
+  }
+
   if(!news || news.length === 0) {
-    return { error: "No news found for the given keyword", status: 404 };
-  } else
-      return res.status(200).json(news);
+    return res.status(404).json({ error: "No news found for the given keyword" });
+  }
+
+  storeNewsArticles(news).then(async () => {
+    const [suggestions] = await pool.query(
+      "SELECT * FROM suggestions where industry_target = ? ORDER BY created_at DESC",
+      [keyword]
+    );
+    return res.status(200).json(suggestions);
+  }).catch(err =>{
+    console.error("Error storing news articles:", err);
+    return res.status(500).json({ error: "Error fetching suggestions based on given keyword" });
+  });
 });
 async function storeNewsArticles(contentArray) {
   const insertQuery = `
