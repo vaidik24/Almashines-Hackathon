@@ -11,7 +11,29 @@ const createIndustryPool = async () => {
   );
   return industries;
 };
-
+const fetchNewsById = async (id) => {
+  const [news] = await pool.query(
+    "SELECT * FROM suggestions WHERE id = ?",
+    [id]
+  );
+  return news[0];
+}
+const generateContentFromNews = async(req,res) =>{
+  // if(req.lang)
+  //   delete req.lang
+  console.log("Request ID: ", req.body.id);
+  if(!req.body.id)
+    res.status(400).json({ error: "ID is required" });
+  fetchNewsById(req.body.id).then(async (news) => {
+    var generatedData = await generateContent("integrated", {title: news.source_title, content: news.suggestion_content},req.category,true);
+    if (generatedData.error) {
+      return { error: generatedData.error, status: generatedData.status };
+    } else{
+      const { status, ...result } = generatedData;
+      res.status(status).json(result);
+    }
+  });
+}
 // Scheduling algorithm for dividing 35 posts among top 5 industries based on frequency
 const dividePostsAmongIndustries = (industries, totalPosts = 35, topN = 5) => {
   const topIndustries = industries.slice(0, topN);
