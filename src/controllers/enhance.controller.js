@@ -86,7 +86,8 @@ const generateContent = async(task,input,category, returnStatus=true) =>{
     // Extract the text properly from the response
     const response = await result.response;
     const generatedText = response.text();
-    const ans = JSON.parse(generatedText);
+    // const ans = JSON.parse(generatedText);
+    const ans = generatedText;
     console.log(ans);
     
     if (!generatedText) {
