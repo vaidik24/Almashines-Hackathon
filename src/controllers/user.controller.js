@@ -215,7 +215,7 @@ const fetchSuggestions = asyncHandler(async (req, res) => {
 
   const [suggestions] = await pool.query(
     "SELECT * FROM suggestions where status!=2 and cid = ? ORDER BY created_at DESC LIMIT ? OFFSET ?",
-    [req.body.cid,parseInt(limit), parseInt(offset)]
+    [req.query.cid,parseInt(limit), parseInt(offset)]
   );
 
   if (!suggestions || suggestions.length === 0) {
