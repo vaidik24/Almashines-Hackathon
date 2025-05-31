@@ -19,7 +19,7 @@ class SuggestionRatioAdjuster {
     return scores;
   }
 
-  adjustRatios(interactions, totalSuggestions = 30) {
+  adjustRatios(interactions, totalSuggestions = 35) {
     const scores = this.computeScores(interactions);
     const totalScore = Object.values(scores).reduce((a, b) => a + b, 0);
 
@@ -29,14 +29,16 @@ class SuggestionRatioAdjuster {
     if (totalScore === 0) {
       const equalRatio = Math.floor(totalSuggestions / industries.length);
       for (const industry of industries) {
-        adjustedRatios[industry] = equalRatio;
+        adjustedRatios["industry"] = industry;
+        adjustedRatios["posts"] = equalRatio;
       }
       return adjustedRatios;
     }
 
     // Step 1: compute raw ratios
     for (const industry of industries) {
-      adjustedRatios[industry] = Math.round((scores[industry] / totalScore) * totalSuggestions);
+      adjustedRatios["industry"] = industry;
+      adjustedRatios["posts"] = Math.round((scores[industry] / totalScore) * totalSuggestions);
     }
 
     // Step 2: handle rounding error
