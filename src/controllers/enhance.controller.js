@@ -10,7 +10,7 @@ const enhanceText = asyncHandler(async (req, res) => {
     return res.status(400).json({ error: "Task and input are required." });
     }
 
-  const result = await generateContent(task, input, category);
+  const result = await generateContent(task, input,category,true);
   if (result.error) {
     return res.status(result.status).json({ error: result.error, details: result.details });
   } else{
@@ -18,7 +18,7 @@ const enhanceText = asyncHandler(async (req, res) => {
   }
 });
 
-const generateContent = async(task,input,category) =>{
+const generateContent = async(task,input,category, returnStatus=true) =>{
   console.log("Generating content with task:", task, "and input:", input, "category:", category);
   
   let prompt = "";
@@ -69,7 +69,8 @@ const generateContent = async(task,input,category) =>{
     Important: Return only the JSON object, no additional text or formatting.`;
     break;
     default:
-      return { error: "Invalid task provided.", status: 400 };
+      const errorObj = { error: "Invalid task provided." };
+      return returnStatus ? { ...errorObj, status: 400 } : errorObj;
   }
   console.log("Generated prompt:", prompt);
   
@@ -89,11 +90,8 @@ const generateContent = async(task,input,category) =>{
     console.log(ans);
     
     if (!generatedText) {
-      return { 
-        error: "No text generated",
-        debug: response ,
-        status: 500
-      };
+      const errorObj = { error: "No text generated", debug: response };
+      return returnStatus ? { ...errorObj, status: 500 } : errorObj;
     }
 
     return { 
@@ -104,11 +102,8 @@ const generateContent = async(task,input,category) =>{
   } catch (error) {
     console.error("Gemini API Error:", error);
     console.error("Error details:", error.message);
-    return { 
-      error: "Failed to generate text from Gemini.",
-      details: error.message ,
-      status: 500
-    };
+    const errorObj = { error: "Failed to generate text from Gemini.", details: error.message };
+    return returnStatus ? { ...errorObj, status: 500 } : errorObj;
   }
 };
 

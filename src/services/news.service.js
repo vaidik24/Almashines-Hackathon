@@ -6,14 +6,14 @@ const BASE_URL = 'https://eventregistry.org/api/v1/article/getArticles';
 // update code to avoid this error
 
 // Instead of default export with an object, use named export
-export default async function fetchNewsByTopic(topic) {
+export default async function fetchNewsByTopic(topic,postCount=1) {
   try {
     const response = await axios.get(BASE_URL, {
       params: {
         "action": "getArticles",
         "keyword": topic,
         "articlesPage": 1,
-        "articlesCount": 1,
+        "articlesCount": postCount,
         "articlesSortBy": "date",
         "articlesSortByAsc": false,
         "dataType": [
