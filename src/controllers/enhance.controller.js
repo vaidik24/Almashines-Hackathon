@@ -64,6 +64,20 @@ Please generate:
         
         Original description: "${input}"`;
     break;
+    case "integrated":
+        prompt = `Create an event plan based on the following:
+- ${input}
+- Event type: event
+
+Please generate:
+- Event title
+- 2-line catchy tagline
+- Event description (~200 words)
+- 3-part agenda with times
+- Social media post content
+        
+        Original description: "${input}"`;
+    break;
     default:
       return { error: "Invalid task provided.", status: 400 };
   }
