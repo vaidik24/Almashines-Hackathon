@@ -10,9 +10,32 @@ const enhanceText = asyncHandler(async (req, res) => {
     return res.status(400).json({ error: "Task and input are required." });
     }
 
-    let prompt = "";
+  const result = await generateContent(task, input);
+  if (result.error) {
+    return res.status(result.status).json({ error: result.error, details: result.details });
+  } else{
+    res.status(result.status).json(result);
+  }
+});
 
-    switch (task) {
+const generateContent = async(task,input) =>{
+  let prompt = "";
+  // prompt examples
+  /*
+  Create an event plan based on the following:
+- Industry: Healthcare AI
+- Audience: Young alumni in biotech
+- Event type: Webinar
+- Goal: Awareness and networking
+
+Please generate:
+- Event title
+- 2-line catchy tagline
+- Event description (~100 words)
+- 3-part agenda with times
+- Social media post content
+  */
+  switch (task) {
     case "paraphrase":
         prompt = `Paraphrase the following ${category || 'content'} description to make it more engaging. Provide exactly 1 version:
 
@@ -42,41 +65,43 @@ const enhanceText = asyncHandler(async (req, res) => {
         Original description: "${input}"`;
     break;
     default:
-        return res.status(400).json({ error: "Invalid task provided." });
+      return { error: "Invalid task provided.", status: 400 };
+  }
+
+  try {
+    // Get the generative model
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    
+    const result = await model.generateContent(prompt);
+    
+    // console.log("Full API Response:", JSON.stringify(result, null, 2));
+
+    // Extract the text properly from the response
+    const response = await result.response;
+    const generatedText = response.text();
+    
+    if (!generatedText) {
+      return { 
+        error: "No text generated",
+        debug: response ,
+        status: 500
+      };
     }
 
-    try {
-        // Get the generative model
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-        
-        const result = await model.generateContent(prompt);
-        
-        // console.log("Full API Response:", JSON.stringify(result, null, 2));
+    return { 
+      result: generatedText,
+      status: 200
+    };
 
-        // Extract the text properly from the response
-        const response = await result.response;
-        const generatedText = response.text();
-        console.log("Generated Text:", JSON.parse(generatedText));
-        
-        if (!generatedText) {
-        return res.status(500).json({ 
-            error: "No text generated",
-            debug: response 
-        });
-        }
+  } catch (error) {
+    console.error("Gemini API Error:", error);
+    console.error("Error details:", error.message);
+    return { 
+      error: "Failed to generate text from Gemini.",
+      details: error.message ,
+      status: 500
+    };
+  }
+};
 
-        res.status(200).json({ 
-        result: generatedText
-        });
-
-    } catch (error) {
-        console.error("Gemini API Error:", error);
-        console.error("Error details:", error.message);
-        res.status(500).json({ 
-        error: "Failed to generate text from Gemini.",
-        details: error.message 
-        });
-    }
-});
-
-export { enhanceText };
+export { enhanceText, generateContent };
