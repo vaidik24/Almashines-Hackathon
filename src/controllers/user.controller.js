@@ -19,9 +19,6 @@ const fetchNewsById = async (id) => {
   return news[0];
 }
 const generateContentFromNews = async(req,res) =>{
-  // if(req.lang)
-  //   delete req.lang
-  // console.log("Request ID: ", req.body.id);
   if(!req.body.id)
     res.status(400).json({ error: "ID is required" });
   fetchNewsById(req.body.id).then(async (news) => {
@@ -121,14 +118,12 @@ const fetchHighestFrequencyIndustry = asyncHandler(async (req, res) => {
 
     }
 
-    // console.log("Frequency Mapping: ", frequencyMapping);
 
     if (!industries || industries.length === 0) {
       return res.status(404).json({ message: "No industries found" });
     }
 
     let content = [];
-    console.log("Frequency Mapping: ", frequencyMapping);
     for (const { industry, posts } of frequencyMapping) {
     // console.log("Fetching news for industry:", industry, " with posts:", posts);
       const news = await fetchNewsByTopic(industry, posts);
@@ -140,13 +135,8 @@ const fetchHighestFrequencyIndustry = asyncHandler(async (req, res) => {
       } else if (news) {
         content.push({ ...news, industry, cid });
       }
-      // console.log("Content length after fetching news for industry:", industry, " is now:", content.length);
   }
-  // const news = await fetchNewsByTopic(industries[1].industry, frequencyMapping[1].posts);
-  // console.log("news : ", news, news.length);
-  // return;
   storeNewsArticles(content).then(() => {
-    // console.log("News articles stored successfully!");
     res.status(200).json({
       industry: industries,
       content: content,
@@ -157,8 +147,20 @@ const fetchHighestFrequencyIndustry = asyncHandler(async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
+
+const findKeywordNews = asyncHandler(async (req, res) => {
+  const { keyword, postCount = 5 } = req.query;
+  if(!keyword || keyword.trim() === "")
+    return res.status(400).json({ error: "Keyword is required" });
+  if(!Number.isInteger(parseInt(postCount)) || parseInt(postCount) <= 0)
+    postCount = 5;
+  const news = await fetchNewsByTopic(keyword, postCount);
+  if(!news || news.length === 0) {
+    return { error: "No news found for the given keyword", status: 404 };
+  } else
+      return res.status(200).json(news);
+});
 async function storeNewsArticles(contentArray) {
-  // console.log("Storing news articles:", contentArray, "articles");
   const insertQuery = `
     INSERT INTO suggestions (source_title, suggestion_content, industry_target, created_at,cid)
     VALUES (?, ?, ?, ?,?)
@@ -172,7 +174,6 @@ async function storeNewsArticles(contentArray) {
     await connection.beginTransaction();
 
     for (const article of contentArray) {
-      // console.log("Inserting article:", article);
       const { title, content, industry = null, cid } = article;
       await connection.execute(insertQuery, [
         title,
@@ -229,4 +230,4 @@ const fetchSuggestions = asyncHandler(async (req, res) => {
     suggestions,
   });
 });
-export { createIndustryPool, fetchHighestFrequencyIndustry, launchNewsletter, generateContentFromNews, fetchSuggestions };
+export { createIndustryPool, fetchHighestFrequencyIndustry, launchNewsletter, generateContentFromNews, fetchSuggestions, findKeywordNews };

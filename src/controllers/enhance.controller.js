@@ -72,7 +72,6 @@ const generateContent = async(task,input,category, returnStatus=true) =>{
       const errorObj = { error: "Invalid task provided." };
       return returnStatus ? { ...errorObj, status: 400 } : errorObj;
   }
-  console.log("Generated prompt:", prompt);
   
 
   try {
@@ -81,14 +80,12 @@ const generateContent = async(task,input,category, returnStatus=true) =>{
     
     const result = await model.generateContent(prompt);
     
-    // console.log("Full API Response:", JSON.stringify(result, null, 2));
 
     // Extract the text properly from the response
     const response = await result.response;
     const generatedText = response.text();
     // const ans = JSON.parse(generatedText);
     const ans = generatedText;
-    console.log(ans);
     
     if (!generatedText) {
       const errorObj = { error: "No text generated", debug: response };
