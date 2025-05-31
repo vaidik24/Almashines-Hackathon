@@ -25,7 +25,7 @@ const generateContent = async(task,input,category) =>{
   
   switch (task) {
     case "paraphrase":
-        prompt = `Paraphrase the following ${category || 'content'} description to make it more engaging. Provide exactly 1 version:
+        prompt = `Paraphrase the following ${category || 'content'} description to make it more engaging. Provide exactly 1  corrected version:
 
         ["paraphrased version 1"]
 
@@ -63,7 +63,7 @@ const generateContent = async(task,input,category) =>{
 
     {
       "title": "Create an alumni-focused ${category || 'content'} title that connects this news to alumni pride, opportunities, or institute legacy",
-      "description": "Write a ${category || 'content'} description from the college admin's perspective that: 1) Highlights the significance of this news for the institute, 2) Connects it to alumni achievements or opportunities, 3) Encourages alumni engagement or participation, 4) Maintains a tone of institutional pride and community. Include how alumni can get involved, benefit, or contribute. (200-250 words)"
+      "description": "Write a ${category || 'content'} description from the college admin's perspective that: 1) Highlights the significance of this news for the institute, 2) Connects it to alumni achievements or opportunities, 3) Encourages alumni engagement or participation, 4) Maintains a tone of institutional pride and community. Include how alumni can get involved, benefit, or contribute. (600-800 words)"
     }
 
     Important: Return only the JSON object, no additional text or formatting.`;
@@ -97,7 +97,7 @@ const generateContent = async(task,input,category) =>{
     }
 
     return { 
-      result: generatedText,
+      result: ans,
       status: 200
     };
 

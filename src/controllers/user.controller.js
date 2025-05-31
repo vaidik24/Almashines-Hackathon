@@ -88,7 +88,7 @@ const launchNewsletter = asyncHandler(async (req, res) => {
   const redirectUrl = `http://localhost/portal/dev/skitahd/feed/create?source=create&hiddenTag=0&title=${encodedTitle}&description=${encodedDesc}`;
 
   return res.status(200).json({
-    redirectUrl,
+    data: redirectUrl,
   });
 });
 export { createIndustryPool, fetchHighestFrequencyIndustry, launchNewsletter };
