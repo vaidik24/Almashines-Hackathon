@@ -45,23 +45,27 @@ const fetchHighestFrequencyIndustry = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: "No industries found" });
   }
   let content = [];
-  for (const { industry, posts } of frequencyMapping) {
-    for (let i = 0; i < posts; i++) {
-      const news = await fetchNewsByTopic(industry);
-      if (Array.isArray(news)) {
-        content.push(...news);
-      } else if (news) {
-        content.push(news);
-      }
-    }
-  }
-  var generatedData = [];
-  for (const item of content) {
-    var data = {};
-    data["title"] = await generateContent("improve_title", item.title);
-    data["content"] = await generateContent("improve_description", item.content);
-    generatedData.push(data);
-  }
+  // for (const { industry, posts } of frequencyMapping) {
+  //   for (let i = 0; i < posts; i++) {
+  //     const news = await fetchNewsByTopic(industry);
+  //     if (Array.isArray(news)) {
+  //       content.push(...news);
+  //     } else if (news) {
+  //       content.push(news);
+  //     }
+  //   }
+  // }
+  content.push(await fetchNewsByTopic(industries[0].industry));
+  console.log("starting generating content");
+  var generatedData = await generateContent("integrated", content[0]);
+  console.log("Generated Data: ", generatedData);
+  // var generatedData = [];
+  // for (const item of content) {
+  //   var data = {};
+  //   data["title"] = await generateContent("improve_title", item.title);
+  //   data["content"] = await generateContent("improve_description", item.content);
+  //   generatedData.push(data);
+  // }
 
 
   res.status(200).json({

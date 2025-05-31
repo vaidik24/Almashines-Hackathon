@@ -10,7 +10,7 @@ const enhanceText = asyncHandler(async (req, res) => {
     return res.status(400).json({ error: "Task and input are required." });
     }
 
-  const result = await generateContent(task, input);
+  const result = await generateContent(task, input, category);
   if (result.error) {
     return res.status(result.status).json({ error: result.error, details: result.details });
   } else{
@@ -18,23 +18,11 @@ const enhanceText = asyncHandler(async (req, res) => {
   }
 });
 
-const generateContent = async(task,input) =>{
+const generateContent = async(task,input,category) =>{
+  console.log("Generating content with task:", task, "and input:", input, "category:", category);
+  
   let prompt = "";
-  // prompt examples
-  /*
-  Create an event plan based on the following:
-- Industry: Healthcare AI
-- Audience: Young alumni in biotech
-- Event type: Webinar
-- Goal: Awareness and networking
-
-Please generate:
-- Event title
-- 2-line catchy tagline
-- Event description (~100 words)
-- 3-part agenda with times
-- Social media post content
-  */
+  
   switch (task) {
     case "paraphrase":
         prompt = `Paraphrase the following ${category || 'content'} description to make it more engaging. Provide exactly 1 version:
@@ -64,9 +52,27 @@ Please generate:
         
         Original description: "${input}"`;
     break;
+    case "integrated":
+    prompt = `You are helping a college administrator create engaging ${category || 'content'} for their institute's alumni platform.
+
+    Institute News/Update: ${input.title} and ${input.content}
+
+    As a college admin, you want to keep alumni connected and engaged with their alma mater. Create a ${category || 'content'} that will resonate with alumni by highlighting how this news reflects the institute's growth, achievements, or opportunities for alumni involvement.
+
+    Please generate it in the following format and return ONLY the JSON object without any markdown formatting or code blocks:
+
+    {
+      "title": "Create an alumni-focused ${category || 'content'} title that connects this news to alumni pride, opportunities, or institute legacy",
+      "description": "Write a ${category || 'content'} description from the college admin's perspective that: 1) Highlights the significance of this news for the institute, 2) Connects it to alumni achievements or opportunities, 3) Encourages alumni engagement or participation, 4) Maintains a tone of institutional pride and community. Include how alumni can get involved, benefit, or contribute. (200-250 words)"
+    }
+
+    Important: Return only the JSON object, no additional text or formatting.`;
+    break;
     default:
       return { error: "Invalid task provided.", status: 400 };
   }
+  console.log("Generated prompt:", prompt);
+  
 
   try {
     // Get the generative model
@@ -79,6 +85,8 @@ Please generate:
     // Extract the text properly from the response
     const response = await result.response;
     const generatedText = response.text();
+    const ans = JSON.parse(generatedText);
+    console.log(ans);
     
     if (!generatedText) {
       return { 
